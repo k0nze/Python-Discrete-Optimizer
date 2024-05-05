@@ -45,10 +45,19 @@ if __name__ == "__main__":
         txt_trace_file_paths.append(txt_trace_file_path)
 
 
-    for txt_trace_file_path in txt_trace_file_paths[:1]:
+    for txt_trace_file_path in txt_trace_file_paths:
+
+        pickle_trace_file_path = txt_trace_file_path.replace("txt", "pickle")
+
+        # check if pickled trace already exists
+        if os.path.exists(pickle_trace_file_path):
+            logging.info(f" Skipping, '{pickle_trace_file_path}' already exits")
+            continue
+
         logging.info(f"Start converting '{txt_trace_file_path}'")
 
         instructions = []
+
 
         # parse instructions
         try:
@@ -93,14 +102,13 @@ if __name__ == "__main__":
 
         # pickle
         try:
-            pickle_trace_file_path = txt_trace_file_path.replace("txt", "pickle")
-
             with open(pickle_trace_file_path, "wb") as f:
                 pickle.dump(traced_instruction_list, f)
         except Exception as e:
             __txt_trace_file_paths_with_errors__.append(txt_trace_file_path)
             logging.error(f"Pickling '{txt_trace_file_path}': " + str(e))
 
+        logging.info(f"Done converting '{txt_trace_file_path}'")
 
     # persist trace file paths with caused errors during conversion
     signal_handler(None, None) 
