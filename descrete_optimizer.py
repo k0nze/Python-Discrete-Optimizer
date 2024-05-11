@@ -78,7 +78,21 @@ class Parameter:
         # CAUTION: currently only one dependency is supported
         self.dependencies = dependencies
         self.current_value = None 
-  
+        self.contrained_values = None
+ 
+    def __iter__(self):
+        self.constrain_values_via_dependencies() 
+        self.index = 0
+        return self
+
+    def __next__(self):
+        if self.index < len(self.contrained_values):
+            return_value = self.contrained_values[self.index]
+            self.index += 1
+            return return_value
+        else:
+            raise StopIteration 
+
     def __repr__(self) -> str:
         return f"{self.name}={self.current_value}"
 
@@ -101,34 +115,43 @@ class Parameter:
             for parameter in dependency_parameters:
                 parameter.infer_initial_value()
 
-            possible_values = self.constrain_values_via_dependencies()
-            if len(possible_values) == 0:
+            self.constrain_values_via_dependencies()
+
+            if len(self.contrained_values) == 0:
                 self.current_value = None
             else:
-                self.current_value = possible_values[0]
+                self.current_value = self.contrained_values[0]
 
     def constrain_values_via_dependencies(self):
-        possible_values = set()
+        if (None, None) in self.dependencies.keys():
+            self.contrained_values = list(self.dependencies[(None,None)]) 
+        else:
+            possible_values = set()
 
-        for (constraining_parameter, contraining_value_range), possible_value_range in self.dependencies.items():
-            # check if the current value of constraining parameter is in the constraining range
-            # if this is the case add the values of the possible value range to values
-            if constraining_parameter.current_value in contraining_value_range:
-                for value in possible_value_range:
-                    possible_values.add(value)
+            for (constraining_parameter, contraining_value_range), possible_value_range in self.dependencies.items():
+                # check if the current value of constraining parameter is in the constraining range
+                # if this is the case add the values of the possible value range to values
+                if constraining_parameter.current_value in contraining_value_range:
+                    for value in possible_value_range:
+                        possible_values.add(value)
 
-        possible_values = sorted(list(possible_values))
-        return possible_values
+            self.contrained_values = sorted(list(possible_values))
 
 
 class ParameterSet:
     def __init__(self, parameters: List[Parameter]) -> None:
         # CAUTION: parameters need to be ordered by their dependencies
         self.parameters = parameters
-        # initialize parameters
-        for parameter in parameters:
+        self.initialize_parameters()
+          
+    def initialize_parameters(self):
+        for parameter in self.parameters:
             parameter.infer_initial_value()
-     
+
+    def get_whole_parameters_space(self):
+        for p_value in self.parameters[0]:
+            print(p_value)
+
     def __repr__(self) -> str:
         return str(self.parameters)
 
@@ -141,16 +164,15 @@ class DescreteOptimizer:
 if __name__ == "__main__":
     p0_values = ListValues([0,1,2,3,4,5,6]) 
     p0 = Parameter("p0", {(None, None): p0_values})
-    p0.infer_initial_value()
-    print(f"current value of p0: {p0.current_value}")
+    #p0.infer_initial_value()
 
     p1_values0 = ListValues([0,1,2,3]) 
     p1_values1 = ListValues([2,3,4,5]) 
 
     p1 = Parameter("p1", {(p0, ListValues([0,1,2])): p1_values0, (p0, ListValues([3,4,5])): p1_values1 })
-    p1.infer_initial_value()
-    print(f"current value of p1: {p1.current_value}")
+    #p1.infer_initial_value()
 
     ps = ParameterSet([p0, p1])
     print(ps)
+    ps.get_whole_parameters_space()
 
