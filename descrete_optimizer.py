@@ -148,9 +148,28 @@ class ParameterSet:
         for parameter in self.parameters:
             parameter.infer_initial_value()
 
+    @staticmethod
+    def ordered_cartesian_product(parameters):
+        result = ParameterSet.cartesian_product(*reversed(parameters))
+        result = list(map(lambda x: tuple(reversed(x)), result))
+        return result
+
+    @staticmethod
+    def cartesian_product(*parameters):
+        # TODO: parameter values need to be contrained as soon a dependy parameter value changed
+        if not parameters:
+            return [()]
+        result = []
+        for product in ParameterSet.cartesian_product(*parameters[1:]):
+            for item in parameters[0]:
+                result.append((item,) + product)
+        return result
+
+
     def get_whole_parameters_space(self):
-        for p_value in self.parameters[0]:
-            print(p_value)
+        self.initialize_parameters()
+        product = ParameterSet.ordered_cartesian_product(self.parameters)
+        return product
 
     def __repr__(self) -> str:
         return str(self.parameters)
@@ -162,7 +181,7 @@ class DescreteOptimizer:
 
 
 if __name__ == "__main__":
-    p0_values = ListValues([0,1,2,3,4,5,6]) 
+    p0_values = ListValues([0,1,2,3,4,5]) 
     p0 = Parameter("p0", {(None, None): p0_values})
     #p0.infer_initial_value()
 
@@ -172,7 +191,13 @@ if __name__ == "__main__":
     p1 = Parameter("p1", {(p0, ListValues([0,1,2])): p1_values0, (p0, ListValues([3,4,5])): p1_values1 })
     #p1.infer_initial_value()
 
-    ps = ParameterSet([p0, p1])
+    p2_values = ListValues([0,1]) 
+    p2 = Parameter("p2", {(None, None): p2_values})
+
+    ps = ParameterSet([p0, p1, p2])
     print(ps)
-    ps.get_whole_parameters_space()
+    ds = ps.get_whole_parameters_space()
+
+    for dp in ds:
+        print(dp)
 
