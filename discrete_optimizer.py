@@ -161,11 +161,14 @@ class DiscreteOptimizer:
         self.parameter_set = parameter_set
         self.objective_function = objective_function 
 
+    def minimize(self):
+        pass
 
 class GlobalSearch(DiscreteOptimizer):
     def __init__(self, parameter_set: ParameterSet, objective_function: Callable) -> None:
         super().__init__(parameter_set, objective_function)
 
+    def minimize(self):
+        design_space = self.parameter_set.get_design_space()
 
-
-
+    
