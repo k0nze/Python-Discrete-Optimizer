@@ -18,7 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 keywords = ["discrete", "optimization"]
-dependencies = []
+dependencies = ["numpy>=1.23.5"]
 requires-python = ">=3.10"
 
 [project.optional-dependencies]

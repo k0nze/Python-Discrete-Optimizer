@@ -66,3 +66,6 @@ class TestDiscreteOptimizer(unittest.TestCase):
         self.assertIn([5, 5, 1], ds)
 
         self.assertEqual(len(ds), 24)
+
+    def test_global_search(self):
+        ...
