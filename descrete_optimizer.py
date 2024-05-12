@@ -28,25 +28,6 @@ class Values:
             return hash(tuple(self.values))
 
 
-class RangeValues(Values):
-    def __init__(self, value_range: Iterable[int]) -> None:
-        super().__init__()
-        self.values = value_range 
-
-    def __contains__(self, key) -> bool:
-        return (key in self.values) 
-
-    def __iter__(self):
-        self.iter_range = copy(self.values)
-        return self
-   
-    def __next__(self):
-        return next(self.iter_range) 
-
-    def get_first_value(self):
-        return list(self.values)[0]
-
-
 class ListValues(Values):
     def __init__(self, values: List[int]) -> None:
         super().__init__()
@@ -169,7 +150,6 @@ class ParameterSet:
             design_space = new_design_space
 
         return design_space
-
 
 
     def __repr__(self) -> str:
