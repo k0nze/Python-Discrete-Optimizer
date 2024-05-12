@@ -105,7 +105,10 @@ class TestDiscreteOptimizer(unittest.TestCase):
         ps = ParameterSet(x, y)
 
         gs = GlobalSearch(ps, object_function)
-        min_x, results = gs.minimize(verbose=False)
+        min_x, results = gs.minimize(verbose=True)
+
+        # self.assertEqual(min_x[0], np.argmin(A))
+        self.assertEqual(object_function(min_x), np.min(A))
 
 
 if __name__ == "__main__":

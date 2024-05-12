@@ -1,5 +1,6 @@
 import sys
 import logging
+import time
 
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -186,8 +187,8 @@ class DiscreteOptimizer:
             level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
         )
 
-    def minimize(self):
-        pass
+    def minimize(self) -> Dict[Tuple[Any, ...], Tuple[int, float]]:
+        return dict()
 
     def log_info(self, verbose, message):
         if verbose:
@@ -215,17 +216,23 @@ class GlobalSearch(DiscreteOptimizer):
         self.log_info(verbose, f"Starting GlobalSearch.minimize()")
 
         for design_point in design_space:
-            self.log_info(verbose, f"Evaluating ")
+            self.log_info(verbose, f"Evaluating design point: {design_point}")
 
             try:
+                start_time = time.process_time()
                 result = self.objective_function(design_point)
+                end_time = time.process_time()
+                runtime = end_time - start_time
+
+                self.log_info(
+                    verbose, f"Evaluation done: {design_point} -> {result}, t={runtime}"
+                )
             except Exception as e:
                 self.log_error(f"Error evaluating design point: {design_point}")
                 result = e
+                runtime = -1
 
-            results[design_point] = result
-
-            self.log_info(verbose, f"Evaluation done: {design_point} -> {result}")
+            results[design_point] = (result, runtime)
 
             if result < min_result:
                 min_design_point = design_point
