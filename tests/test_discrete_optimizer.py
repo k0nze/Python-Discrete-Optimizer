@@ -1,4 +1,6 @@
 import unittest
+from discrete_optimizer.discrete_optimizer import GlobalSearch
+import numpy as np
 
 from discrete_optimizer import ListValues, Parameter, ParameterSet
 
@@ -32,40 +34,58 @@ class TestDiscreteOptimizer(unittest.TestCase):
             },
         )
 
-        ps = ParameterSet([p0, p1, p2])
+        ps = ParameterSet([p0, p1, p2], exclude=[(0, 0, 0)])
         ds = ps.get_design_space()
 
-        self.assertIn([0, 0, 0], ds)
-        self.assertIn([0, 1, 0], ds)
-        self.assertIn([0, 2, 0], ds)
-        self.assertIn([0, 3, 0], ds)
+        self.assertIn((0, 1, 0), ds)
+        self.assertIn((0, 2, 0), ds)
+        self.assertIn((0, 3, 0), ds)
 
-        self.assertIn([1, 0, 0], ds)
-        self.assertIn([1, 1, 0], ds)
-        self.assertIn([1, 2, 0], ds)
-        self.assertIn([1, 3, 0], ds)
+        self.assertIn((1, 0, 0), ds)
+        self.assertIn((1, 1, 0), ds)
+        self.assertIn((1, 2, 0), ds)
+        self.assertIn((1, 3, 0), ds)
 
-        self.assertIn([2, 0, 0], ds)
-        self.assertIn([2, 1, 0], ds)
-        self.assertIn([2, 2, 0], ds)
-        self.assertIn([2, 3, 0], ds)
+        self.assertIn((2, 0, 0), ds)
+        self.assertIn((2, 1, 0), ds)
+        self.assertIn((2, 2, 0), ds)
+        self.assertIn((2, 3, 0), ds)
 
-        self.assertIn([3, 2, 0], ds)
-        self.assertIn([3, 3, 0], ds)
-        self.assertIn([3, 4, 0], ds)
-        self.assertIn([3, 5, 1], ds)
+        self.assertIn((3, 2, 0), ds)
+        self.assertIn((3, 3, 0), ds)
+        self.assertIn((3, 4, 0), ds)
+        self.assertIn((3, 5, 1), ds)
 
-        self.assertIn([4, 2, 0], ds)
-        self.assertIn([4, 3, 0], ds)
-        self.assertIn([4, 4, 0], ds)
-        self.assertIn([4, 5, 1], ds)
+        self.assertIn((4, 2, 0), ds)
+        self.assertIn((4, 3, 0), ds)
+        self.assertIn((4, 4, 0), ds)
+        self.assertIn((4, 5, 1), ds)
 
-        self.assertIn([5, 2, 0], ds)
-        self.assertIn([5, 3, 0], ds)
-        self.assertIn([5, 4, 0], ds)
-        self.assertIn([5, 5, 1], ds)
+        self.assertIn((5, 2, 0), ds)
+        self.assertIn((5, 3, 0), ds)
+        self.assertIn((5, 4, 0), ds)
+        self.assertIn((5, 5, 1), ds)
 
-        self.assertEqual(len(ds), 24)
+        self.assertEqual(len(ds), 23)
 
-    def test_global_search(self):
-        ...
+    def test_global_search_1d(self):
+        def fill(A):
+            offset = A.size // 2
+            for x in range(A.size):
+                A[x] = (x - offset) ** 2
+
+        A_size = 20
+        A = np.zeros(shape=(A_size,))
+        fill(A)
+
+        object_function = lambda xs: A[xs[0]]
+
+        x = Parameter("x", list(range(0, 20)))
+        ps = ParameterSet([x])
+
+        gs = GlobalSearch(ps, object_function)
+        gs.minimize()
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
 class Values:
@@ -28,7 +28,7 @@ class Values:
 
 
 class ListValues(Values):
-    def __init__(self, values: List[int]) -> None:
+    def __init__(self, values: List[Any]) -> None:
         super().__init__()
         self.values = values
 
@@ -58,8 +58,14 @@ class Parameter:
         dependencies: Dict[Tuple[Optional["Parameter"], Optional[Values]], Values],
     ) -> None:
         self.name = name
-        # CAUTION: currently only one dependency is supported
-        self.dependencies = dependencies
+
+        if type(dependencies) is list:
+            self.dependencies = {(None, None): ListValues(dependencies)}
+        elif isinstance(dependencies, Values):
+            self.dependencies = {(None, None): dependencies}
+        else:
+            self.dependencies = dependencies
+
         self.current_value = None
         self.contrained_values = None
 
@@ -125,17 +131,20 @@ class Parameter:
 
 
 class ParameterSet:
-    def __init__(self, parameters: List[Parameter]) -> None:
+    def __init__(
+        self, parameters: List[Parameter], exclude: Optional[List[List[Any]]] = None
+    ) -> None:
         # CAUTION: parameters need to be ordered by their dependencies
         self.parameters = parameters
+        self.exclude = exclude
         self.initialize_parameters()
 
-    def initialize_parameters(self):
+    def initialize_parameters(self) -> None:
         for parameter in self.parameters:
             parameter.infer_initial_value()
 
-    def get_design_space(self):
-        design_space = [[]]
+    def get_design_space(self) -> List[Tuple[Any, ...]]:
+        design_space = [()]
 
         for index, current_parameter in enumerate(self.parameters):
             new_design_space = []
@@ -149,11 +158,18 @@ class ParameterSet:
                 # when iterating over the values of a parameter it is automatically
                 # contrained
                 for value in current_parameter:
-                    new_design_point = design_point + [value]
+                    new_design_point = design_point + (value,)
                     new_design_space.append(new_design_point)
             design_space = new_design_space
 
-        return design_space
+        if self.exclude is not None:
+            design_space = [
+                design_point
+                for design_point in design_space
+                if design_point not in self.exclude
+            ]
+
+        return list(set(design_space))
 
     def __repr__(self) -> str:
         return str(self.parameters)
@@ -172,9 +188,19 @@ class DiscreteOptimizer:
 
 class GlobalSearch(DiscreteOptimizer):
     def __init__(
-        self, parameter_set: ParameterSet, objective_function: Callable
+        self,
+        parameter_set: ParameterSet,
+        objective_function: Callable[Tuple[Any, ...], Any],
     ) -> None:
         super().__init__(parameter_set, objective_function)
 
     def minimize(self):
-        self.parameter_set.get_design_space()
+        design_space = self.parameter_set.get_design_space()
+
+        min_design_point = design_space[0]
+        # min_result =
+
+        for design_point in design_space:
+            print(self.objective_function(design_point))
+
+        return min_design_point
