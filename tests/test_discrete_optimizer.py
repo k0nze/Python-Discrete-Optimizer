@@ -172,9 +172,7 @@ class TestDiscreteOptimizer(unittest.TestCase):
         object_function = lambda xs: A[xs[0]]
 
         sa = SimulatedAnnealing(ps, object_function)
-        sa.minimize(verbose=False)
-
-        ...
+        sa.minimize(verbose=True)
 
 
 if __name__ == "__main__":
