@@ -84,7 +84,9 @@ class TestDiscreteOptimizer(unittest.TestCase):
         ps = ParameterSet([x])
 
         gs = GlobalSearch(ps, object_function)
-        gs.minimize()
+        min_x = gs.minimize(verbose=True)
+
+        print(object_function(min_x))
 
 
 if __name__ == "__main__":

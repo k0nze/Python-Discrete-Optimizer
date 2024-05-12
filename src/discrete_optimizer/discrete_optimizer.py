@@ -1,3 +1,6 @@
+import sys
+import logging
+
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
@@ -193,14 +196,38 @@ class GlobalSearch(DiscreteOptimizer):
         objective_function: Callable[Tuple[Any, ...], Any],
     ) -> None:
         super().__init__(parameter_set, objective_function)
+        logging.basicConfig(
+            level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+        )
 
-    def minimize(self):
+    def minimize(self, verbose=False):
         design_space = self.parameter_set.get_design_space()
 
         min_design_point = design_space[0]
-        # min_result =
+        min_value = sys.maxsize
+
+        if verbose:
+            logging.info(f"Starting GlobalSearch.minimize()")
 
         for design_point in design_space:
-            print(self.objective_function(design_point))
+            if verbose:
+                logging.info(f"Evaluating design point: {design_point}")
+
+            value = self.objective_function(design_point)
+
+            if verbose:
+                logging.info(f"Evaluation done:         {design_point} -> {value}")
+
+            if value < min_value:
+                min_design_point = design_point
+                min_value = value
+
+                if verbose:
+                    logging.info(f"Found new minimum:       {design_point} -> {value}")
+
+        if verbose:
+            logging.info(
+                f"Finished GlobalSearch.minimize(): {min_design_point} -> {min_value}"
+            )
 
         return min_design_point
