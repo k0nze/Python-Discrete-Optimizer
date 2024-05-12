@@ -132,6 +132,28 @@ class TestDiscreteOptimizer(unittest.TestCase):
         d = SimulatedAnnealing.euclidean_distance(p, q)
         self.assertGreater(d, 0.0)
 
+    def test_pertubation_function(self):
+        x = Parameter("x", list(range(0, 10)))
+        y = Parameter("x", list(range(0, 20)))
+        z = Parameter("x", list(range(0, 30)))
+
+        ps = ParameterSet(
+            x,
+            y,
+            z,
+            exclude=[(3, 10, 28), (2, 11, 29), (4, 11, 29), (3, 10, 29), (3, 11, 28)],
+        )
+
+        design_space = ps.get_design_space()
+        np_design_space = SimulatedAnnealing.convert_design_space_to_numpy(design_space)
+
+        design_point = np.array((3, 11, 29))
+
+        next_design_point = SimulatedAnnealing.pertubate(
+            design_point, np_design_space, 1.1
+        )
+        np.testing.assert_equal(next_design_point, np.array((3, 12, 29)))
+
     def test_simulated_annealing_1d(self):
         def fill(A):
             offset = A.size // 2
@@ -144,7 +166,14 @@ class TestDiscreteOptimizer(unittest.TestCase):
 
         fill(A)
 
+        x = Parameter("x", list(range(0, A_size)))
+        ps = ParameterSet(x)
+
         object_function = lambda xs: A[xs[0]]
+
+        sa = SimulatedAnnealing(ps, object_function)
+        sa.minimize(verbose=False)
+
         ...
 
 

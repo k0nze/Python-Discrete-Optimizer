@@ -1,9 +1,12 @@
 import sys
 import logging
 import time
+import random
 import numpy as np
 
 from typing import Any, Callable, Dict, List, Optional, Tuple
+
+from numpy.typing import NDArray
 
 
 class Values:
@@ -255,12 +258,39 @@ class SimulatedAnnealing(DiscreteOptimizer):
         super().__init__(parameter_set, objective_function)
 
     @staticmethod
+    def convert_design_space_to_numpy(design_space):
+        return [np.array(x) for x in design_space]
+
+    @staticmethod
     def euclidean_distance(p: Tuple[int, ...], q: Tuple[int, ...]) -> float:
         p_np = np.array(p)
         q_np = np.array(q)
         return np.linalg.norm(p_np - q_np)
 
+    @staticmethod
+    def pertubate(
+        design_point: NDArray, design_space: List[NDArray], max_distance: float
+    ) -> NDArray:
+        while True:
+            candidate_design_point = random.choice(design_space)
+            if (
+                not np.array_equal(candidate_design_point, design_point)
+                and SimulatedAnnealing.euclidean_distance(
+                    design_point, candidate_design_point
+                )
+                < max_distance
+            ):
+                return candidate_design_point
+
     def minimize(
-        self, pertubation_function: Callable, verbose=False
+        self, pertubation_function: Optional[Callable] = None, verbose=False
     ) -> Dict[Tuple[Any, ...], Tuple[int, float]]:
+        design_space = self.parameter_set.get_design_space()
+        results = {key: None for key in design_space}
+
+        if pertubation_function is None:
+            pertubation_function = SimulatedAnnealing.pertubate
+
+        SimulatedAnnealing.convert_design_space_to_numpy(design_space)
+
         ...
