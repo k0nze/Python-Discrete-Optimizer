@@ -75,7 +75,9 @@ class TestDiscreteOptimizer(unittest.TestCase):
                 A[x] = (x - offset) ** 2
 
         A_size = 20
+
         A = np.zeros(shape=(A_size,))
+
         fill(A)
 
         object_function = lambda xs: A[xs[0]]
@@ -90,12 +92,20 @@ class TestDiscreteOptimizer(unittest.TestCase):
         self.assertEqual(object_function(min_x), np.min(A))
 
     def test_global_search_2d(self):
+        def fill(A):
+            offset_x = A.shape[1] // 2
+            offset_y = A.shape[0] // 2
+
+            for x in range(A.shape[1]):
+                for y in range(A.shape[0]):
+                    A[x][y] = (x - offset_x) ** 2 + (y - offset_y) ** 2
+
         A_rows = 20
         A_cols = 20
 
         A = np.zeros(shape=(A_rows, A_cols))
 
-        print(A)
+        fill(A)
 
         object_function = lambda xs: A[xs[0]][xs[1]]
 
@@ -107,7 +117,6 @@ class TestDiscreteOptimizer(unittest.TestCase):
         gs = GlobalSearch(ps, object_function)
         min_x, results = gs.minimize(verbose=True)
 
-        # self.assertEqual(min_x[0], np.argmin(A))
         self.assertEqual(object_function(min_x), np.min(A))
 
 
