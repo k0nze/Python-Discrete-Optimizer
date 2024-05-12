@@ -34,7 +34,7 @@ class TestDiscreteOptimizer(unittest.TestCase):
             },
         )
 
-        ps = ParameterSet([p0, p1, p2], exclude=[(0, 0, 0)])
+        ps = ParameterSet(p0, p1, p2, exclude=[(0, 0, 0)])
         ds = ps.get_design_space()
 
         self.assertIn((0, 1, 0), ds)
@@ -80,14 +80,32 @@ class TestDiscreteOptimizer(unittest.TestCase):
 
         object_function = lambda xs: A[xs[0]]
 
-        x = Parameter("x", list(range(0, 20)))
-        ps = ParameterSet([x])
+        x = Parameter("x", list(range(0, A_size)))
+        ps = ParameterSet(x)
 
         gs = GlobalSearch(ps, object_function)
-        min_x = gs.minimize(verbose=False)
+        min_x, results = gs.minimize(verbose=False)
 
         self.assertEqual(min_x[0], np.argmin(A))
         self.assertEqual(object_function(min_x), np.min(A))
+
+    def test_global_search_2d(self):
+        A_rows = 20
+        A_cols = 20
+
+        A = np.zeros(shape=(A_rows, A_cols))
+
+        print(A)
+
+        object_function = lambda xs: A[xs[0]][xs[1]]
+
+        x = Parameter("x", list(range(0, A_cols)))
+        y = Parameter("x", list(range(0, A_rows)))
+
+        ps = ParameterSet(x, y)
+
+        gs = GlobalSearch(ps, object_function)
+        min_x, results = gs.minimize(verbose=False)
 
 
 if __name__ == "__main__":

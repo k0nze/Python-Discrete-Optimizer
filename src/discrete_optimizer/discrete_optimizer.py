@@ -134,11 +134,9 @@ class Parameter:
 
 
 class ParameterSet:
-    def __init__(
-        self, parameters: List[Parameter], exclude: Optional[List[List[Any]]] = None
-    ) -> None:
+    def __init__(self, *parameters, exclude: Optional[List[List[Any]]] = None) -> None:
         # CAUTION: parameters need to be ordered by their dependencies
-        self.parameters = parameters
+        self.parameters = list(parameters)
         self.exclude = exclude
         self.initialize_parameters()
 
@@ -184,9 +182,19 @@ class DiscreteOptimizer:
     ) -> None:
         self.parameter_set = parameter_set
         self.objective_function = objective_function
+        logging.basicConfig(
+            level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
+        )
 
     def minimize(self):
         pass
+
+    def log_info(self, verbose, message):
+        if verbose:
+            logging.info(message)
+
+    def log_error(self, message):
+        logging.error(message)
 
 
 class GlobalSearch(DiscreteOptimizer):
@@ -196,38 +204,37 @@ class GlobalSearch(DiscreteOptimizer):
         objective_function: Callable[Tuple[Any, ...], Any],
     ) -> None:
         super().__init__(parameter_set, objective_function)
-        logging.basicConfig(
-            level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
-        )
 
     def minimize(self, verbose=False):
         design_space = self.parameter_set.get_design_space()
+        results = {key: None for key in design_space}
 
         min_design_point = design_space[0]
-        min_value = sys.maxsize
+        min_result = sys.maxsize
 
-        if verbose:
-            logging.info(f"Starting GlobalSearch.minimize()")
+        self.log_info(verbose, f"Starting GlobalSearch.minimize()")
 
         for design_point in design_space:
-            if verbose:
-                logging.info(f"Evaluating design point: {design_point}")
+            self.log_info(verbose, f"Evaluating ")
 
-            value = self.objective_function(design_point)
+            try:
+                result = self.objective_function(design_point)
+            except Exception as e:
+                self.log_error(f"Error evaluating design point: {design_point}")
+                result = e
 
-            if verbose:
-                logging.info(f"Evaluation done:         {design_point} -> {value}")
+            results[design_point] = result
 
-            if value < min_value:
+            self.log_info(verbose, f"Evaluation done: {design_point} -> {result}")
+
+            if result < min_result:
                 min_design_point = design_point
-                min_value = value
+                min_result = result
+                self.log_info(verbose, f"Found new minimum: {design_point} -> {result}")
 
-                if verbose:
-                    logging.info(f"Found new minimum:       {design_point} -> {value}")
+        self.log_info(
+            verbose,
+            f"Finished GlobalSearch.minimize(): {min_design_point} -> {min_result}",
+        )
 
-        if verbose:
-            logging.info(
-                f"Finished GlobalSearch.minimize(): {min_design_point} -> {min_value}"
-            )
-
-        return min_design_point
+        return min_design_point, results
