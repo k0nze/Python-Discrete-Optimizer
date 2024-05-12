@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Tuple, Dict
+from typing import Callable, Iterable, List, Optional, Tuple, Dict
 from copy import copy
 from pprint import pprint
 
@@ -156,10 +156,14 @@ class ParameterSet:
         return str(self.parameters)
 
 
-class DescreteOptimizer:
-    def __init__(self) -> None:
-        pass
+class DiscreteOptimizer:
+    def __init__(self, parameter_set: ParameterSet, objective_function: Callable) -> None:
+        self.parameter_set = parameter_set
+        self.objective_function = objective_function 
 
+
+class GlobalSearch(DiscreteOptimizer):
+    ...
 
 if __name__ == "__main__":
     p0_values = ListValues([0,1,2,3,4,5]) 
