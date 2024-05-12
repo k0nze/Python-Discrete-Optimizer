@@ -149,23 +149,28 @@ class ParameterSet:
         for parameter in self.parameters:
             parameter.infer_initial_value()
 
-    @staticmethod
-    def cartesian_product(*parameters):
-        if not parameters:
-            return [()]
-        result = []
-        print(parameters)
-        print(">", parameters[0], parameters[1:])
-        for product in ParameterSet.cartesian_product(*parameters[1:]):
-            for item in parameters[0]:
-                result.append((item,) + product)
-        return result
+    def get_design_space(self):
+        design_space = [[]]
+
+        for index, current_parameter in enumerate(self.parameters):
+            new_design_space = []
+            for design_point in design_space:
+                # set the curren_value of parameters on which the current_parameter might 
+                # depend to the to the value in the design point in order to constrain the 
+                # current_parameter correctly
+                for i in range(index):
+                    self.parameters[i].current_value = design_point[i]
+
+                # when iterating over the values of a parameter it is automatically 
+                # contrained
+                for value in current_parameter:
+                    new_design_point = design_point + [value]
+                    new_design_space.append(new_design_point)
+            design_space = new_design_space
+
+        return design_space
 
 
-    def get_whole_parameters_space(self):
-        self.initialize_parameters()
-        product = ParameterSet.cartesian_product(*self.parameters)
-        return product
 
     def __repr__(self) -> str:
         return str(self.parameters)
@@ -191,23 +196,9 @@ if __name__ == "__main__":
     p2_values1 = ListValues([1]) 
     p2 = Parameter("p2", {(p1, ListValues([0,1,2,3,4])): p2_values0, (p1, ListValues([5])): p2_values1})
 
-    #ps = ParameterSet([p0, p1, p2])
-    #ds = ps.get_whole_parameters_space()
+    ps = ParameterSet([p0, p1, p2])
+    ds = ps.get_design_space()
 
-    #for dp in ds:
-    #    print(dp)
+    for dp in ds:
+        print(dp)
 
-    parameters = [p0, p1]
-
-    design_space = [[]]
-
-    for index, parameter in enumerate(parameters):
-        new_design_space = []
-        for item in design_space:
-            for value in parameter:
-                new_item = item + [value]
-                new_design_space.append(new_item)
-        design_space = new_design_space
-
-    print()
-    pprint(design_space)
