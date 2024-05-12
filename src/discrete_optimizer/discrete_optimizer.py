@@ -1,6 +1,5 @@
-from typing import Callable, Iterable, List, Optional, Tuple, Dict
-from copy import copy
-from pprint import pprint
+from typing import Callable, Dict, List, Optional, Tuple
+
 
 class Values:
     def __init__(self) -> None:
@@ -13,7 +12,7 @@ class Values:
         return False
 
     def __iter__(self):
-        return self 
+        return self
 
     def __next__(self):
         raise StopIteration
@@ -31,12 +30,12 @@ class Values:
 class ListValues(Values):
     def __init__(self, values: List[int]) -> None:
         super().__init__()
-        self.values = values 
+        self.values = values
 
     def __iter__(self):
         self.iter_index = 0
         return self
-   
+
     def __next__(self):
         if self.iter_index < len(self.values):
             return_value = self.values[self.iter_index]
@@ -45,24 +44,27 @@ class ListValues(Values):
         else:
             raise StopIteration
 
-
     def __contains__(self, key) -> bool:
-        return (key in self.values)
+        return key in self.values
 
     def get_first_value(self):
         return self.values[0]
 
 
 class Parameter:
-    def __init__(self, name: str, dependencies: Dict[Tuple[Optional["Parameter"], Optional[Values]], Values]) -> None:
+    def __init__(
+        self,
+        name: str,
+        dependencies: Dict[Tuple[Optional["Parameter"], Optional[Values]], Values],
+    ) -> None:
         self.name = name
         # CAUTION: currently only one dependency is supported
         self.dependencies = dependencies
-        self.current_value = None 
+        self.current_value = None
         self.contrained_values = None
- 
+
     def __iter__(self):
-        self.constrain_values_via_dependencies() 
+        self.constrain_values_via_dependencies()
         self.current_value = self.contrained_values[0]
         self.index = 0
         return self
@@ -73,14 +75,13 @@ class Parameter:
             self.index += 1
             return self.current_value
         else:
-            raise StopIteration 
+            raise StopIteration
 
     def __repr__(self) -> str:
         return f"{self.name}={self.current_value}"
 
     def __hash__(self) -> int:
         return hash(self.name)
-
 
     def infer_initial_value(self):
         # if there is no dependency to another parameter set it to the first value for values
@@ -106,11 +107,14 @@ class Parameter:
 
     def constrain_values_via_dependencies(self):
         if (None, None) in self.dependencies.keys():
-            self.contrained_values = list(self.dependencies[(None,None)]) 
+            self.contrained_values = list(self.dependencies[(None, None)])
         else:
             possible_values = set()
 
-            for (constraining_parameter, contraining_value_range), possible_value_range in self.dependencies.items():
+            for (
+                constraining_parameter,
+                contraining_value_range,
+            ), possible_value_range in self.dependencies.items():
                 # check if the current value of constraining parameter is in the constraining range
                 # if this is the case add the values of the possible value range to values
                 if constraining_parameter.current_value in contraining_value_range:
@@ -125,7 +129,7 @@ class ParameterSet:
         # CAUTION: parameters need to be ordered by their dependencies
         self.parameters = parameters
         self.initialize_parameters()
-          
+
     def initialize_parameters(self):
         for parameter in self.parameters:
             parameter.infer_initial_value()
@@ -136,13 +140,13 @@ class ParameterSet:
         for index, current_parameter in enumerate(self.parameters):
             new_design_space = []
             for design_point in design_space:
-                # set the curren_value of parameters on which the current_parameter might 
-                # depend to the to the value in the design point in order to constrain the 
+                # set the curren_value of parameters on which the current_parameter might
+                # depend to the to the value in the design point in order to constrain the
                 # current_parameter correctly
                 for i in range(index):
                     self.parameters[i].current_value = design_point[i]
 
-                # when iterating over the values of a parameter it is automatically 
+                # when iterating over the values of a parameter it is automatically
                 # contrained
                 for value in current_parameter:
                     new_design_point = design_point + [value]
@@ -151,24 +155,26 @@ class ParameterSet:
 
         return design_space
 
-
     def __repr__(self) -> str:
         return str(self.parameters)
 
 
 class DiscreteOptimizer:
-    def __init__(self, parameter_set: ParameterSet, objective_function: Callable) -> None:
+    def __init__(
+        self, parameter_set: ParameterSet, objective_function: Callable
+    ) -> None:
         self.parameter_set = parameter_set
-        self.objective_function = objective_function 
+        self.objective_function = objective_function
 
     def minimize(self):
         pass
 
+
 class GlobalSearch(DiscreteOptimizer):
-    def __init__(self, parameter_set: ParameterSet, objective_function: Callable) -> None:
+    def __init__(
+        self, parameter_set: ParameterSet, objective_function: Callable
+    ) -> None:
         super().__init__(parameter_set, objective_function)
 
     def minimize(self):
-        design_space = self.parameter_set.get_design_space()
-
-    
+        self.parameter_set.get_design_space()
