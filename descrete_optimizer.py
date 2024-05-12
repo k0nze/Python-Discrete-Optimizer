@@ -1,6 +1,6 @@
 from typing import Iterable, List, Optional, Tuple, Dict
 from copy import copy
-
+from pprint import pprint
 
 class Values:
     def __init__(self) -> None:
@@ -82,14 +82,15 @@ class Parameter:
  
     def __iter__(self):
         self.constrain_values_via_dependencies() 
+        self.current_value = self.contrained_values[0]
         self.index = 0
         return self
 
     def __next__(self):
         if self.index < len(self.contrained_values):
-            return_value = self.contrained_values[self.index]
+            self.current_value = self.contrained_values[self.index]
             self.index += 1
-            return return_value
+            return self.current_value
         else:
             raise StopIteration 
 
@@ -149,17 +150,12 @@ class ParameterSet:
             parameter.infer_initial_value()
 
     @staticmethod
-    def ordered_cartesian_product(parameters):
-        result = ParameterSet.cartesian_product(*reversed(parameters))
-        result = list(map(lambda x: tuple(reversed(x)), result))
-        return result
-
-    @staticmethod
     def cartesian_product(*parameters):
-        # TODO: parameter values need to be contrained as soon a dependy parameter value changed
         if not parameters:
             return [()]
         result = []
+        print(parameters)
+        print(">", parameters[0], parameters[1:])
         for product in ParameterSet.cartesian_product(*parameters[1:]):
             for item in parameters[0]:
                 result.append((item,) + product)
@@ -168,7 +164,7 @@ class ParameterSet:
 
     def get_whole_parameters_space(self):
         self.initialize_parameters()
-        product = ParameterSet.ordered_cartesian_product(self.parameters)
+        product = ParameterSet.cartesian_product(*self.parameters)
         return product
 
     def __repr__(self) -> str:
@@ -191,13 +187,27 @@ if __name__ == "__main__":
     p1 = Parameter("p1", {(p0, ListValues([0,1,2])): p1_values0, (p0, ListValues([3,4,5])): p1_values1 })
     #p1.infer_initial_value()
 
-    p2_values = ListValues([0,1]) 
-    p2 = Parameter("p2", {(None, None): p2_values})
+    p2_values0 = ListValues([0]) 
+    p2_values1 = ListValues([1]) 
+    p2 = Parameter("p2", {(p1, ListValues([0,1,2,3,4])): p2_values0, (p1, ListValues([5])): p2_values1})
 
-    ps = ParameterSet([p0, p1, p2])
-    print(ps)
-    ds = ps.get_whole_parameters_space()
+    #ps = ParameterSet([p0, p1, p2])
+    #ds = ps.get_whole_parameters_space()
 
-    for dp in ds:
-        print(dp)
+    #for dp in ds:
+    #    print(dp)
 
+    parameters = [p0, p1]
+
+    design_space = [[]]
+
+    for index, parameter in enumerate(parameters):
+        new_design_space = []
+        for item in design_space:
+            for value in parameter:
+                new_item = item + [value]
+                new_design_space.append(new_item)
+        design_space = new_design_space
+
+    print()
+    pprint(design_space)
