@@ -1,5 +1,5 @@
 import unittest
-from discrete_optimizer.discrete_optimizer import GlobalSearch
+from discrete_optimizer.discrete_optimizer import GlobalSearch, SimulatedAnnealing
 import numpy as np
 
 from discrete_optimizer import ListValues, Parameter, ParameterSet
@@ -115,9 +115,37 @@ class TestDiscreteOptimizer(unittest.TestCase):
         ps = ParameterSet(x, y)
 
         gs = GlobalSearch(ps, object_function)
-        min_x, results = gs.minimize(verbose=True)
+        min_x, results = gs.minimize(verbose=False)
 
         self.assertEqual(object_function(min_x), np.min(A))
+
+    def test_euclidean_distance(self):
+        p = (1, 1, 1, 1)
+        q = (1, 1, 1, 1)
+
+        d = SimulatedAnnealing.euclidean_distance(p, q)
+        self.assertEqual(d, 0.0)
+
+        p = (1, 1, 1, 1)
+        q = (1, 1, 1, 2)
+
+        d = SimulatedAnnealing.euclidean_distance(p, q)
+        self.assertGreater(d, 0.0)
+
+    def test_simulated_annealing_1d(self):
+        def fill(A):
+            offset = A.size // 2
+            for x in range(A.size):
+                A[x] = (x - offset) ** 2
+
+        A_size = 20
+
+        A = np.zeros(shape=(A_size,))
+
+        fill(A)
+
+        object_function = lambda xs: A[xs[0]]
+        ...
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 import sys
 import logging
 import time
+import numpy as np
 
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -187,7 +188,7 @@ class DiscreteOptimizer:
             level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
         )
 
-    def minimize(self) -> Dict[Tuple[Any, ...], Tuple[int, float]]:
+    def minimize(self, verbose=False) -> Dict[Tuple[Any, ...], Tuple[int, float]]:
         return dict()
 
     def log_info(self, verbose, message):
@@ -245,3 +246,21 @@ class GlobalSearch(DiscreteOptimizer):
         )
 
         return min_design_point, results
+
+
+class SimulatedAnnealing(DiscreteOptimizer):
+    def __init__(
+        self, parameter_set: ParameterSet, objective_function: Callable
+    ) -> None:
+        super().__init__(parameter_set, objective_function)
+
+    @staticmethod
+    def euclidean_distance(p: Tuple[int, ...], q: Tuple[int, ...]) -> float:
+        np.array(p)
+        np.array(q)
+        return np.sqrt(np.sum(np.power(np.subtract(p, q), 2)))
+
+    def minimize(
+        self, pertubation_function: Callable, verbose=False
+    ) -> Dict[Tuple[Any, ...], Tuple[int, float]]:
+        ...
