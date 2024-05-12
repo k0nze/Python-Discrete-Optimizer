@@ -35,5 +35,34 @@ class TestDiscreteOptimizer(unittest.TestCase):
         ps = ParameterSet([p0, p1, p2])
         ds = ps.get_design_space()
 
-        for dp in ds:
-            print(dp)
+        self.assertIn([0, 0, 0], ds)
+        self.assertIn([0, 1, 0], ds)
+        self.assertIn([0, 2, 0], ds)
+        self.assertIn([0, 3, 0], ds)
+
+        self.assertIn([1, 0, 0], ds)
+        self.assertIn([1, 1, 0], ds)
+        self.assertIn([1, 2, 0], ds)
+        self.assertIn([1, 3, 0], ds)
+
+        self.assertIn([2, 0, 0], ds)
+        self.assertIn([2, 1, 0], ds)
+        self.assertIn([2, 2, 0], ds)
+        self.assertIn([2, 3, 0], ds)
+
+        self.assertIn([3, 2, 0], ds)
+        self.assertIn([3, 3, 0], ds)
+        self.assertIn([3, 4, 0], ds)
+        self.assertIn([3, 5, 1], ds)
+
+        self.assertIn([4, 2, 0], ds)
+        self.assertIn([4, 3, 0], ds)
+        self.assertIn([4, 4, 0], ds)
+        self.assertIn([4, 5, 1], ds)
+
+        self.assertIn([5, 2, 0], ds)
+        self.assertIn([5, 3, 0], ds)
+        self.assertIn([5, 4, 0], ds)
+        self.assertIn([5, 5, 1], ds)
+
+        self.assertEqual(len(ds), 24)
