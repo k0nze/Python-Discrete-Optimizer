@@ -256,9 +256,9 @@ class SimulatedAnnealing(DiscreteOptimizer):
 
     @staticmethod
     def euclidean_distance(p: Tuple[int, ...], q: Tuple[int, ...]) -> float:
-        np.array(p)
-        np.array(q)
-        return np.sqrt(np.sum(np.power(np.subtract(p, q), 2)))
+        p_np = np.array(p)
+        q_np = np.array(q)
+        return np.linalg.norm(p_np - q_np)
 
     def minimize(
         self, pertubation_function: Callable, verbose=False
