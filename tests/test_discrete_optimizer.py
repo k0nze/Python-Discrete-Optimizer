@@ -86,7 +86,7 @@ class TestDiscreteOptimizer(unittest.TestCase):
         ps = ParameterSet(x)
 
         gs = GlobalSearch(ps, object_function)
-        min_x, results = gs.minimize(verbose=False)
+        min_x, results, steps = gs.minimize(verbose=False)
 
         self.assertEqual(min_x[0], np.argmin(A))
         self.assertEqual(object_function(min_x), np.min(A))
@@ -115,7 +115,7 @@ class TestDiscreteOptimizer(unittest.TestCase):
         ps = ParameterSet(x, y)
 
         gs = GlobalSearch(ps, object_function)
-        min_x, results = gs.minimize(verbose=False)
+        min_x, results, steps = gs.minimize(verbose=False)
 
         self.assertEqual(object_function(min_x), np.min(A))
 
@@ -172,7 +172,7 @@ class TestDiscreteOptimizer(unittest.TestCase):
         object_function = lambda xs: A[xs[0]]
 
         sa = SimulatedAnnealing(ps, object_function)
-        sa.minimize(verbose=True)
+        min_x, results, steps = sa.minimize(verbose=True)
 
 
 if __name__ == "__main__":

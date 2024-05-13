@@ -2,6 +2,7 @@ import sys
 import logging
 import time
 import random
+import math
 import numpy as np
 
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -191,8 +192,10 @@ class DiscreteOptimizer:
             level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s"
         )
 
-    def minimize(self, verbose=False) -> Dict[Tuple[Any, ...], Tuple[int, float]]:
-        return dict()
+    def minimize(
+        self, verbose=False
+    ) -> Tuple[Tuple[Any, ...], Dict[Tuple[Any, ...], Tuple[int, float]], int]:
+        return (None,), dict(), 0
 
     def log_info(self, verbose, message):
         if verbose:
@@ -210,12 +213,15 @@ class GlobalSearch(DiscreteOptimizer):
     ) -> None:
         super().__init__(parameter_set, objective_function)
 
-    def minimize(self, verbose=False):
+    def minimize(
+        self, verbose=False
+    ) -> Tuple[Tuple[Any, ...], Dict[Tuple[Any, ...], Tuple[int, float]], int]:
         design_space = self.parameter_set.get_design_space()
         results = {key: None for key in design_space}
 
         min_design_point = design_space[0]
         min_result = sys.maxsize
+        steps = 0
 
         self.log_info(verbose, f"Starting GlobalSearch.minimize()")
 
@@ -243,12 +249,14 @@ class GlobalSearch(DiscreteOptimizer):
                 min_result = result
                 self.log_info(verbose, f"Found new minimum: {design_point} -> {result}")
 
+            steps += 1
+
         self.log_info(
             verbose,
             f"Finished GlobalSearch.minimize(): {min_design_point} -> {min_result}",
         )
 
-        return min_design_point, results
+        return min_design_point, results, steps
 
 
 class SimulatedAnnealing(DiscreteOptimizer):
@@ -282,15 +290,70 @@ class SimulatedAnnealing(DiscreteOptimizer):
             ):
                 return candidate_design_point
 
+    @staticmethod
+    def accept(delta_E, T):
+        if delta_E < 0:
+            return True
+        else:
+            # generate random number between [0,1)
+            r = random.random()
+            if r < math.exp(-delta_E / T):
+                return True
+            else:
+                return False
+
     def minimize(
-        self, pertubation_function: Optional[Callable] = None, verbose=False
-    ) -> Dict[Tuple[Any, ...], Tuple[int, float]]:
+        self,
+        initial_design_point=None,
+        T_max=100,
+        T_min=0.001,
+        E_th=0,
+        alpha=0.85,
+        pertubation_function: Optional[Callable] = None,
+        max_distance: float = 1.5,
+        verbose=False,
+    ) -> Tuple[Tuple[Any, ...], Dict[Tuple[Any, ...], Tuple[int, float]], int]:
         design_space = self.parameter_set.get_design_space()
         results = {key: None for key in design_space}
 
         if pertubation_function is None:
             pertubation_function = SimulatedAnnealing.pertubate
 
-        SimulatedAnnealing.convert_design_space_to_numpy(design_space)
+        np_design_space = SimulatedAnnealing.convert_design_space_to_numpy(design_space)
 
-        # TODO
+        if initial_design_point is None:
+            design_point = np_design_space[0]
+
+        min_design_point = design_point
+        min_result = sys.maxsize
+        steps = 0
+
+        T = T_max
+        E = self.objective_function(design_point)
+
+        while T > T_min and E > E_th:
+            new_design_point = SimulatedAnnealing.pertubate(
+                design_point, design_space, max_distance
+            )
+
+            # check if design point was already evaluated
+            if results[tuple(new_design_point)] is not None:
+                E_new = results[tuple(new_design_point)]
+            else:
+                E_new = self.objective_function(new_design_point)
+                results[tuple(new_design_point)] = E_new
+
+            if E_new < min_result:
+                min_design_point = new_design_point
+                min_result = E_new
+
+            delta_E = E_new - E
+
+            if SimulatedAnnealing.accept(delta_E, T):
+                design_point = new_design_point
+                E = E_new
+            T = T * alpha
+
+            steps += 1
+
+        return tuple(min_design_point), results, steps
