@@ -174,6 +174,36 @@ class TestDiscreteOptimizer(unittest.TestCase):
         sa = SimulatedAnnealing(ps, object_function)
         min_x, results, steps = sa.minimize(verbose=True)
 
+    def test_simulated_annealing_2d(self):
+        def fill(A):
+            offset_x = A.shape[1] // 2
+            offset_y = A.shape[0] // 2
+
+            for x in range(A.shape[1]):
+                for y in range(A.shape[0]):
+                    A[x][y] = (x - offset_x) ** 2 + (y - offset_y) ** 2
+
+        A_rows = 40
+        A_cols = 40
+
+        A = np.zeros(shape=(A_rows, A_cols))
+
+        fill(A)
+
+        object_function = lambda xs: A[xs[0]][xs[1]]
+
+        x = Parameter("x", list(range(0, A_cols)))
+        y = Parameter("x", list(range(0, A_rows)))
+
+        ps = ParameterSet(x, y)
+
+        object_function = lambda xs: A[xs[0]][xs[1]]
+
+        sa = SimulatedAnnealing(ps, object_function)
+        min_x, results, steps = sa.minimize(verbose=True)
+
+        self.assertEqual(object_function(min_x), np.min(A))
+
 
 if __name__ == "__main__":
     unittest.main()
