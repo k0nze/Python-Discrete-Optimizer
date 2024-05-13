@@ -347,13 +347,31 @@ class SimulatedAnnealing(DiscreteOptimizer):
                 self.log_info(
                     verbose, f"Using cached design point: {design_point}, step={steps}"
                 )
-                E_new = results[tuple(new_design_point)]
+                E_new = results[tuple(new_design_point)][0]
+
+                # skip point if it produced an error perviously
+                if isinstance(E_new, Exception):
+                    continue
             else:
                 self.log_info(
                     verbose, f"Evaluating design point: {design_point}, step={steps}"
                 )
-                E_new = self.objective_function(new_design_point)
-                results[tuple(new_design_point)] = E_new
+                try:
+                    start_time = time.process_time()
+                    E_new = self.objective_function(new_design_point)
+                    end_time = time.process_time()
+                    runtime = end_time - start_time
+
+                    self.log_info(
+                        verbose,
+                        f"Evaluation done: {new_design_point} -> {E_new}, t={runtime}",
+                    )
+                except Exception as e:
+                    self.log_error(f"Error evaluating design point: {design_point}")
+                    E_new = e
+                    runtime = -1
+
+                    results[tuple(new_design_point)] = (E_new, runtime)
 
             if E_new < min_result:
                 min_design_point = new_design_point

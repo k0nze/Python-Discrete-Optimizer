@@ -110,7 +110,7 @@ class TestDiscreteOptimizer(unittest.TestCase):
         object_function = lambda xs: A[xs[0]][xs[1]]
 
         x = Parameter("x", list(range(0, A_cols)))
-        y = Parameter("x", list(range(0, A_rows)))
+        y = Parameter("y", list(range(0, A_rows)))
 
         ps = ParameterSet(x, y)
 
@@ -172,7 +172,9 @@ class TestDiscreteOptimizer(unittest.TestCase):
         object_function = lambda xs: A[xs[0]]
 
         sa = SimulatedAnnealing(ps, object_function)
-        min_x, results, steps = sa.minimize(verbose=True)
+        min_x, results, steps = sa.minimize(verbose=False)
+
+        self.assertLessEqual(object_function(min_x), np.min(A) + 1)
 
     def test_simulated_annealing_2d(self):
         def fill(A):
@@ -193,16 +195,16 @@ class TestDiscreteOptimizer(unittest.TestCase):
         object_function = lambda xs: A[xs[0]][xs[1]]
 
         x = Parameter("x", list(range(0, A_cols)))
-        y = Parameter("x", list(range(0, A_rows)))
+        y = Parameter("y", list(range(0, A_rows)))
 
         ps = ParameterSet(x, y)
 
         object_function = lambda xs: A[xs[0]][xs[1]]
 
         sa = SimulatedAnnealing(ps, object_function)
-        min_x, results, steps = sa.minimize(verbose=True)
+        min_x, results, steps = sa.minimize(verbose=False)
 
-        self.assertLessEqual(np.min(A), object_function(min_x))
+        self.assertLessEqual(object_function(min_x), np.min(A) + 1)
 
 
 if __name__ == "__main__":
