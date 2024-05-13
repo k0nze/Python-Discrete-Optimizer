@@ -226,7 +226,9 @@ class GlobalSearch(DiscreteOptimizer):
         self.log_info(verbose, f"Starting GlobalSearch.minimize()")
 
         for design_point in design_space:
-            self.log_info(verbose, f"Evaluating design point: {design_point}")
+            self.log_info(
+                verbose, f"Evaluating design point: {design_point}, step={steps}"
+            )
 
             try:
                 start_time = time.process_time()
@@ -247,7 +249,9 @@ class GlobalSearch(DiscreteOptimizer):
             if result < min_result:
                 min_design_point = design_point
                 min_result = result
-                self.log_info(verbose, f"Found new minimum: {design_point} -> {result}")
+                self.log_info(
+                    verbose, f"Found new minimum: {min_design_point} -> {min_result}"
+                )
 
             steps += 1
 
@@ -328,6 +332,8 @@ class SimulatedAnnealing(DiscreteOptimizer):
         min_result = sys.maxsize
         steps = 0
 
+        self.log_info(verbose, f"Starting GlobalSearch.minimize()")
+
         T = T_max
         E = self.objective_function(design_point)
 
@@ -338,14 +344,23 @@ class SimulatedAnnealing(DiscreteOptimizer):
 
             # check if design point was already evaluated
             if results[tuple(new_design_point)] is not None:
+                self.log_info(
+                    verbose, f"Using cached design point: {design_point}, step={steps}"
+                )
                 E_new = results[tuple(new_design_point)]
             else:
+                self.log_info(
+                    verbose, f"Evaluating design point: {design_point}, step={steps}"
+                )
                 E_new = self.objective_function(new_design_point)
                 results[tuple(new_design_point)] = E_new
 
             if E_new < min_result:
                 min_design_point = new_design_point
                 min_result = E_new
+                self.log_info(
+                    verbose, f"Found new minimum: {min_design_point} -> {min_result}"
+                )
 
             delta_E = E_new - E
 
@@ -355,5 +370,10 @@ class SimulatedAnnealing(DiscreteOptimizer):
             T = T * alpha
 
             steps += 1
+
+        self.log_info(
+            verbose,
+            f"Finished SimulatedAnnealing.minimize(): {min_design_point} -> {min_result}",
+        )
 
         return tuple(min_design_point), results, steps

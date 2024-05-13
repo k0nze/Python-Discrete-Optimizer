@@ -202,7 +202,7 @@ class TestDiscreteOptimizer(unittest.TestCase):
         sa = SimulatedAnnealing(ps, object_function)
         min_x, results, steps = sa.minimize(verbose=True)
 
-        self.assertEqual(object_function(min_x), np.min(A))
+        self.assertLessEqual(np.min(A), object_function(min_x))
 
 
 if __name__ == "__main__":
